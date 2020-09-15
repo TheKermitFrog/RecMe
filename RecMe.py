@@ -41,14 +41,16 @@ def loggin():
     if not os.path.exists('credentials.txt'):
         print('Welcome to RecMe!\nLooks like it\'s your first time here, please enter your information.\n')
         username, client_id, client_secret, redirect_uri = set_credentials()
+        print('Loggin you in....')
+        print('Successfully logged in')
         token = spotipy.util.prompt_for_user_token(username,
-                                           'playlist-modify-public',
+                                           'playlist-modify-public user-read-private playlist-modify-private user-top-read user-read-recently-played user-follow-read',
                                            client_id,
                                            client_secret,
                                            redirect_uri)
-        sp = spotipy.Spotify(auth=token)
-        print('Welcome {}!'.format(sp.me().get('display_name')))
-        return sp
+        spotify = spotipy.Spotify(auth=token)
+        print('{}, welcome to RecMe!'.format(spotify.me().get('display_name')))
+        return spotify
     else:
         with open('credentials.txt', "r") as read:
                 credentials = json.load(read)
@@ -56,30 +58,74 @@ def loggin():
                 client_id = credentials['client_id']
                 client_secret = credentials['client_secret']
                 redirect_uri = credentials['redirect_uri']
+        print('Loggin you in....')
         token = spotipy.util.prompt_for_user_token(username,
-                                           'playlist-modify-public',
+                                           'playlist-modify-public user-read-private playlist-modify-private user-top-read user-read-recently-played user-follow-read',
                                            client_id,
                                            client_secret,
                                            redirect_uri)
-        sp = spotipy.Spotify(auth=token)
-        print('Welcome back {}!'.format(sp.me().get('display_name')))
-        return sp
+        spotify = spotipy.Spotify(auth=token)
+        print('Successfully logged in')
+        print('Welcome back {}!'.format(spotify.me().get('display_name')))
+        return spotify
+
+class RecMe():
+    def __init__(self, spotify):
+        self.spotify = spotify
+        self.id = spotify.me().get('id')
+        self.genres = spotify.recommendation_genre_seeds().get('genres')
+        self.playlists = parse_playlists(spotify.current_user_playlists())
+        self.destination = ''
+
+    def get_genres(self):
+        print(self.genres)
+    def get_playlists(self):
+        print(self.playlists)
+    def set_destination(self):
+        dest = input('Enter destination playlist id:')
+        temp = self.spotify.playlist(playlist_id=dest)
+        if temp.get('owner').get('id') != self.id:
+            print('You do not own this playlist. Please use a playlist you owned.')
+        else:
+            self.destination = dest
+            print('Destination set to: {}'.format(temp.get('name')))
 
 
 
-
-
+def parse_playlists(playlists):
+    parsed = {}
+    for playlist in playlists.get('items'):
+        parsed[playlist.get('name')] = playlist.get('id')
+    return parsed
 def main():
     set_dir()
     while True:
-        cmd = input()
+        cmd = input('')
     # matches = [f for f in os.listdir() if f.startswith(".cache-")]
         if cmd == 'login':
-            sp_client = loggin()
+            spotify = loggin()
+            recme = RecMe(spotify)
         elif cmd == 'view_credentials':
             view_credentials()
         elif cmd == 'set_credentials':
             set_credentials()
+        elif cmd == 'get_genres':
+            try:
+                recme.get_genres()
+            except UnboundLocalError:
+                print('You havn\'t logged in, type login to login.')
+        elif cmd == 'get_playlists':
+            try:
+                recme.get_playlists()
+            except UnboundLocalError:
+                print('You havn\'t logged in, type login to login.')
+        elif cmd == 'set_destination':
+            try:
+                recme.set_destination()
+            except UnboundLocalError:
+                print('You havn\'t logged in, type login to login.')
+        else:
+            print('Unknown command {}, type help for available commands.'.format(cmd))
 
 
 
