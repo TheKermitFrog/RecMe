@@ -96,18 +96,20 @@ class RecMe():
         else:
             print('No destination set, RecMe will create a new playlist as destination.')
     def getrec(self):
-        print('Input must be separate by comma')
-
+        print('Input must be separated by comma')
         while True:
             try:
                 seed_artists = input('Enter seed artist ids:')
                 seed_tracks = input('Enter seed track ids:')
                 seed_genres = input('Enter seed genres:')
-                if not (seed_artists and seed_tracks and seed_genres):
-                    raise MustEnterOneException()
+                seed_artists, seed_tracks, seed_genres = seeds_handler(seed_artists), seeds_handler(seed_tracks), seeds_handler(seed_genres)
+
+                seeds_num = len(seed_artists) + len(seed_tracks) + len(seed_genres)
+                if seeds_num > 5 or seeds_num == 0:
+                    raise SeedsNumberException()
                 break
-            except MustEnterOneException:
-                print('At least one of seed_artists, seed_tracks and seed_genres are needed.')
+            except SeedsNumberException:
+                print('Maximum is five seeds. At least one of seed_artists, seed_tracks and seed_genres are needed.')
 
         while True:
             try:
@@ -140,7 +142,13 @@ def parse_tracks(tracks):
         parsed[track.get('name')+'-'+track.get('artists')[0].get('name')] = track.get('id')
     return parsed
 
-class MustEnterOneException(BaseException):
+def seeds_handler(seeds):
+    if seeds:
+        return seeds.split(',')
+    else:
+        return seeds
+
+class SeedsNumberException(BaseException):
     pass
 
 
@@ -186,9 +194,9 @@ def main():
                 print(recme.top_tracks)
             except UnboundLocalError:
                 print('You havn\'t logged in, type login to login.')
-        elif cmd == 'GetRec':
+        elif cmd == 'getrec':
             try:
-                recme.GetRec()
+                recme.getrec()
             except UnboundLocalError:
                 print('You havn\'t logged in, type login to login.')
         else:
