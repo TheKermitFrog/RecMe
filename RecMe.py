@@ -1,8 +1,6 @@
 from spotipy import Spotify
 import spotipy.util
 import json
-import argparse
-import os.path
 import os
 
 def set_dir():
@@ -75,7 +73,9 @@ class RecMe():
         self.id = spotify.me().get('id')
         self.genres = spotify.recommendation_genre_seeds().get('genres')
         self.playlists = parse_playlists(spotify.current_user_playlists())
-        self.destination = ''
+        self.destination = {}
+        self.top_artists = parse_artists(spotify.current_user_top_artists())
+        self.top_tracks = parse_tracks(spotify.current_user_top_tracks())
 
     def get_genres(self):
         print(self.genres)
@@ -87,8 +87,38 @@ class RecMe():
         if temp.get('owner').get('id') != self.id:
             print('You do not own this playlist. Please use a playlist you owned.')
         else:
-            self.destination = dest
+            self.destination['id'] = dest
+            self.destination['name'] = temp.get('name')
             print('Destination set to: {}'.format(temp.get('name')))
+    def current_destination(self):
+        if self.destination:
+            print('Your destination is set to: {}'.format(self.destination.get('name')))
+        else:
+            print('No destination set, RecMe will create a new playlist as destination.')
+    def getrec(self):
+        print('Input must be separate by comma')
+
+        while True:
+            try:
+                seed_artists = input('Enter seed artist ids:')
+                seed_tracks = input('Enter seed track ids:')
+                seed_genres = input('Enter seed genres:')
+                if not (seed_artists and seed_tracks and seed_genres):
+                    raise MustEnterOneException()
+                break
+            except MustEnterOneException:
+                print('At least one of seed_artists, seed_tracks and seed_genres are needed.')
+
+        while True:
+            try:
+                limit = int(input('How many tracks to recommend (1-100):'))
+                if limit >= 1 and limit <= 100:
+                    break
+            except ValueError:
+                print('Please enter an integer between 1 and 100')
+
+        # todo
+        # inplement rec playlist
 
 
 
@@ -97,6 +127,23 @@ def parse_playlists(playlists):
     for playlist in playlists.get('items'):
         parsed[playlist.get('name')] = playlist.get('id')
     return parsed
+
+def parse_artists(artists):
+    parsed = {}
+    for artist in artists.get('items'):
+        parsed[artist.get('name')] = artist.get('id')
+    return parsed
+
+def parse_tracks(tracks):
+    parsed = {}
+    for track in tracks.get('items'):
+        parsed[track.get('name')+'-'+track.get('artists')[0].get('name')] = track.get('id')
+    return parsed
+
+class MustEnterOneException(BaseException):
+    pass
+
+
 def main():
     set_dir()
     while True:
@@ -122,6 +169,26 @@ def main():
         elif cmd == 'set_destination':
             try:
                 recme.set_destination()
+            except UnboundLocalError:
+                print('You havn\'t logged in, type login to login.')
+        elif cmd == 'current_destination':
+            try:
+                recme.current_destination()
+            except UnboundLocalError:
+                print('You havn\'t logged in, type login to login.')
+        elif cmd == 'my_top_artists':
+            try:
+                print(recme.top_artists)
+            except UnboundLocalError:
+                print('You havn\'t logged in, type login to login.')
+        elif cmd == 'my_top_tracks':
+            try:
+                print(recme.top_tracks)
+            except UnboundLocalError:
+                print('You havn\'t logged in, type login to login.')
+        elif cmd == 'GetRec':
+            try:
+                recme.GetRec()
             except UnboundLocalError:
                 print('You havn\'t logged in, type login to login.')
         else:
