@@ -119,11 +119,23 @@ class RecMe():
             except ValueError:
                 print('Please enter an integer between 1 and 100')
 
+        # get recommendation
+        rec_tracks = self.spotify.recommendations(seed_artists=seed_artists, seed_genres=seed_genres, seed_tracks=seed_tracks, limit=limit)
+        track_ids = parse_rec(rec_tracks)
         # todo
         # inplement rec playlist
+        if rec_tracks:
+            if not self.destination:
+                description = 'Custom recommendations from RecMe'
+                playlist = self.spotify.user_playlist_create(user=self.id, name='RecMe Recommendations', description=description)
+                dest = playlist.get('id')
+                self.spotify.user_playlist_add_tracks(user=self.id, playlist_id=dest, tracks=track_ids)
+                print('Done')
+            else:
+                self.spotify.user_playlist_add_tracks(user=self.id, playlist_id=self.destination, tracks=track_ids)
+                print('Done')
 
-
-
+# helper functions
 def parse_playlists(playlists):
     parsed = {}
     for playlist in playlists.get('items'):
@@ -147,6 +159,12 @@ def seeds_handler(seeds):
         return seeds.split(',')
     else:
         return seeds
+
+def parse_rec(recs):
+    tracks_id = []
+    for rec in recs.get('tracks'):
+        tracks_id.append(rec.get('id'))
+    return(tracks_id)
 
 class SeedsNumberException(BaseException):
     pass
