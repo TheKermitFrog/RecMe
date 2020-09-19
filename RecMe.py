@@ -250,13 +250,5 @@ def main():
         else:
             print('Unknown command {}, type help for available commands.'.format(cmd))
 
-
-
-    # args = get_args()
-    # if args.file_path:
-    #     with open(args.file_path) as file:
-    #         file.write('Lorem ipsum dolor sit.')
-
-
 if __name__ == '__main__':
     main()
