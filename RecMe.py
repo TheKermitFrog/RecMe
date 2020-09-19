@@ -169,6 +169,34 @@ def parse_rec(recs):
 class SeedsNumberException(BaseException):
     pass
 
+help = """Commands
+Login not required:
+-login: Login to with saved credentials.
+        Credentials:
+        * Spotify username: Spotify user URI
+        * Spotyfy client ID = Spotify developer account client ID
+        * Spotify client secret = Spotify developer account client secret
+        * Redirect URI = Spotify developer account redirect URI
+-view_credentials: View saved credentials.
+-set_credentials: Update credentials.
+
+Login required:
+-get_genres: Return a list of available seed genres.
+-get_playlists: Return a list of your Spotify playlists and their ids.
+-set_destination: Set destination playlist for recommendations.
+-current_destination: Display current destination.
+-my_top_artists: Return a list of your top artists and their ids.
+-my_top_tracks: Return a list of your top tracks and their ids.
+-getrec: Get recommendations, add them to your destination playlist.
+         If no destination playlist is set, RecMe creates a new playlist "RecMe Recommendations" as destination.
+         4 arguments needed:
+         * seed artist: Seed artists ids, separated by comma.
+         * seed track: Seed tracks ids, separated by comma.
+         * seed genres: Seed genres, separated by comma.
+         Maximum is five seeds in total. At least one of seed_artists, seed_tracks and seed_genres are needed.
+         * Number of tracks to recommend: Integer with value between 1 and 100.
+
+"""
 
 def main():
     set_dir()
@@ -217,6 +245,8 @@ def main():
                 recme.getrec()
             except UnboundLocalError:
                 print('You havn\'t logged in, type login to login.')
+        elif cmd == 'help':
+            print(help)
         else:
             print('Unknown command {}, type help for available commands.'.format(cmd))
 
