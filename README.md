@@ -1,5 +1,5 @@
 # RecMe
-A enhanced Spotify tracks recommendation tool.
+A Python script that retrieves customizable music recommendations provided by Spotify-Api to your Spotify Account.
 
 ## How does it works
 1. Logs on to your Spotify account.
